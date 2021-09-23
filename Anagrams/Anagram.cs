@@ -5,40 +5,105 @@ using System.Linq;
 
 namespace Anagrams
 {
-    public class Anagram
+    public class Anagram2
     {
+        public Dictionary<string, List<string>> anagrams;
+        public string longest_key = "";
+        public int anagrams_sets_quantity = 0;
+        public int anagram_words_count = 0;
 
-        public static string[] ConvertTxToArray(string path)
+        public Anagram2(Hashing dic)
         {
-            var allLines = File.ReadAllLines(path);
-            var words = allLines
-                .Where(x => x != string.Empty)
-                .ToArray();
+            anagrams = dic.anagrams;
+        }
+        public void Print(TextWriter sw)
+        {
+            foreach (var set in anagrams)
+            {
+                anagram_words_count += set.Value.Count;
+                anagrams_sets_quantity++;
+                sw.WriteLine(string.Join(", ", set.Value));
 
-            return words;
+                if (set.Key.Length > longest_key.Length)
+                    longest_key = set.Key;
+            }
+        }
+    }
+
+    public class Hashing
+    {
+        public Dictionary<string, List<string>> words = new Dictionary<string, List<string>>();
+        public Dictionary<string, List<string>> anagrams = new Dictionary<string, List<string>>();
+
+        public Hashing()
+        {
+
         }
 
-
-        public static string[] FindAllAnagrams(string[] words)
+        public Hashing(string[] lines)
         {
-        
-            var dic = new Dictionary<string, string>();
+            SortWords(lines);
+        }
 
-            foreach (var word in words.Where(x => x.Length > 1))
+        private void SortWords(string[] lines)
+        {
+            for (int i = 0; i < lines.Length; i++)
             {
-                string ordered = new string(word.OrderBy(c => c).ToArray());
+                string word = lines[i].ToLower();
+                char[] characters = word.ToCharArray();
+                Array.Sort(characters);
+                string sorted_word = new string(characters);
 
-                if (dic.ContainsKey(ordered))
+                if (words.ContainsKey(sorted_word))
                 {
-                    dic[ordered] += " " + word;
+                    if (!words[sorted_word].Contains(word))
+                    {
+                        words[sorted_word].Add(word);
+                    }
+                    if (words[sorted_word].Count > 1)
+                    {
+                        anagrams[sorted_word] = words[sorted_word];
+                    }
                 }
                 else
                 {
-                    dic[ordered] = word;
+                    words.Add(sorted_word, new List<string>());
+                    words[sorted_word].Add(word);
                 }
             }
+        }
+    }
 
-            return dic.Values.Where(x => x.Contains(" ")).ToArray();
+    public class Archivo
+    {
+        private string[] Internal_Arr = null;
+
+        public Archivo()
+        {
+            Internal_Arr = new string[] { };
+        }
+        public Archivo(string path)
+        {
+            if (!File.Exists(path))
+            {
+                throw new FileNotFoundException($"El archivo \"{path}\" no pudo ser encotnrado");
+            }
+
+            StreamReader sr = new StreamReader(path);
+            string line;
+            List<string> list_string = new List<string>();
+
+            while ((line = sr.ReadLine()) != null)
+            {
+                list_string.Add(line);
+            }
+
+            this.Internal_Arr = list_string.ToArray();
+
+        }
+        public string[] get_array()
+        {
+            return this.Internal_Arr;
         }
 
     }
